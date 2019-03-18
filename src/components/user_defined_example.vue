@@ -1,7 +1,8 @@
 <template>
-  <div>
-    <div id="myDiagramDiv" style="width:100%; height:400px; background-color: #DAE4E4;"></div>
-  </div>
+  <div
+    id="user-defined-diagram"
+    style="width:100%; height:400px; background-color: #DAE4E4;margin-top:20px;"
+  ></div>
 </template>
 
 <script>
@@ -22,9 +23,8 @@ export default {
   },
   mounted() {
     let go = this.go;
-    var $ = go.GraphObject.make;
-
-    var myDiagram = $(go.Diagram, "myDiagramDiv", {
+    let $ = go.GraphObject.make;
+    let myDiagram = $(go.Diagram, "user-defined-diagram", {
       initialContentAlignment: go.Spot.Center, // 居中显示内容
       "undoManager.isEnabled": false, // 打开 Ctrl-Z 和 Ctrl-Y 撤销重做功能
       "toolManager.mouseWheelBehavior": go.ToolManager.WheelNone, //鼠标滚轮事件禁止
@@ -34,41 +34,13 @@ export default {
         { angle: 270, layerSpacing: 60 }
       )
     });
-
-    // 我们早先定义的模板
-    myDiagram.nodeTemplate = $(
-      go.Node,
-      "Horizontal",
-      { background: "#fff" },
-      $(
-        go.Picture,
-        { margin: 10, width: 50, height: 50, background: "#ddd" },
-        new go.Binding("source")
-      ),
-      $(
-        go.TextBlock,
-        "Default Text",
-        {
-          margin: 12,
-          width: 150,
-          stroke: "#333",
-          font: "bold 16px sans-serif"
-        },
-        new go.Binding("text", "name")
-      )
-    );
-
+    let leftNode = this.leftNode();
+    // let templmap = new go.Map();
+    // templmap.add("left", leftNode);
+    myDiagram.nodeTemplate = leftNode;
     // 定义一个直角路由形式的连线模板, 去掉箭头
-    myDiagram.linkTemplate = $(
-      go.Link,
-      { routing: go.Link.Orthogonal, corner: 5 },
-      $(go.Shape, { strokeWidth: 2, stroke: "#555" }),
-      $(go.TextBlock, new go.Binding("text", "text"))
-    ); // the link shape
-    // 
-
-    
-    var model = $(go.TreeModel);
+    myDiagram.linkTemplate = this.getLine()
+    var model = $(go.TreeModel)
     model.nodeDataArray = [
       { key: "1", text: "asd", name: "灭霸", source: mieba },
       { key: "2", text: "asd", parent: "1", name: "奥创", source: aochuang },
@@ -96,12 +68,49 @@ export default {
       },
       { key: "6", text: "asd", parent: "2", name: "钢铁侠", source: gangtiexia }
     ];
-    myDiagram.model = model;
+  },
+  methods: {
+    leftNode() {
+      let go = this.go;
+      let $ = go.GraphObject.make;
+      let node = $(
+        go.Node,
+        "Horizontal",
+        { background: "#fff" },
+        $(
+          go.Picture,
+          { margin: 10, width: 50, height: 50, background: "#ddd" },
+          new go.Binding("source")
+        ),
+        $(
+          go.TextBlock,
+          "Default Text",
+          {
+            margin: 12,
+            width: 150,
+            stroke: "#333",
+            font: "bold 16px sans-serif"
+          },
+          new go.Binding("text", "name")
+        )
+      );
+
+      return node;
+    },
+    getLine() {
+      var go = this.go;
+      var $ = go.GraphObject.make;
+      let link = $(
+        go.Link,
+        { routing: go.Link.Orthogonal, corner: 5 },
+        $(go.Shape, { strokeWidth: 2, stroke: "#555" }),
+        $(go.TextBlock, new go.Binding("text", "text"))
+      );
+      return link;
+    }
   }
 };
 </script>
 
 <style>
-canvas{border:0px;outline:none;}
 </style>
-
