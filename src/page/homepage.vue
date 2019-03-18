@@ -1,13 +1,13 @@
 <template>
   <div>
     <vGoExample></vGoExample>
-    <!-- <vHelloWorld></vHelloWorld> -->
+    <vUserDefinedExample></vUserDefinedExample>
   </div>
 </template>
 
 <script>
 import vGoExample from '@/components/go_example'
-import vHelloWorld from '@/components/hello_world'
+import vUserDefinedExample from '@/components/user_defined_example'
 export default {
   data () {
     return {
@@ -16,7 +16,7 @@ export default {
   },
   components:{
     vGoExample,
-    vHelloWorld
+    vUserDefinedExample
   }
 }
 </script>
