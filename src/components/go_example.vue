@@ -42,7 +42,7 @@ export default {
       { background: "#fff" },
       $(
         go.Picture,
-        { margin: 10, width: 50, height: 50, background: "#ddd" },
+        { margin: 5, width: 40, height: 40, background: "#ddd" },
         new go.Binding("source")
       ),
       $(
@@ -61,10 +61,10 @@ export default {
     let thirdNode = $(
       go.Node,
       "Horizontal",
-      { background: "#fff",position: new go.Point(-180, 100) },
+      { background: "#fff", position: new go.Point(-180, 100) },
       $(
         go.Picture,
-        { margin: 10, width: 50, height: 50, background: "#ddd" },
+        { margin: 5, width: 40, height: 40, background: "#ddd" },
         new go.Binding("source")
       ),
       $(
@@ -83,10 +83,10 @@ export default {
     let fourthNode = $(
       go.Node,
       "Horizontal",
-      { background: "#fff",position: new go.Point(180, 100) },
+      { background: "#fff", position: new go.Point(180, 100) },
       $(
         go.Picture,
-        { margin: 10, width: 50, height: 50, background: "#ddd" },
+        { margin: 5, width: 40, height: 40, background: "#ddd" },
         new go.Binding("source")
       ),
       $(
@@ -109,44 +109,124 @@ export default {
       $(go.TextBlock, new go.Binding("text", "text"))
     ); // the link shape
     //
-    myDiagram.nodeTemplateMap.add('top',topNode)
-    myDiagram.nodeTemplateMap.add('thirdNode',thirdNode)
-    myDiagram.nodeTemplateMap.add('fourthNode',fourthNode)
+    myDiagram.nodeTemplateMap.add("top", topNode);
+    myDiagram.nodeTemplateMap.add("thirdNode", thirdNode);
+    myDiagram.nodeTemplateMap.add("fourthNode", fourthNode);
     var model = $(go.TreeModel);
     model.nodeDataArray = [
-      { key: "1", text: "asd\n", name: "灭霸", source: mieba,category:'top' },
-      { key: "2", text: "asd\n", parent: "1", name: "奥创", source: aochuang,category:'top' },
+      { key: "Root", text: "asd\n", name: "灭霸", source: mieba, category: "top" },
+      {
+        key: "2",
+        text: "asd\n",
+        parent: "Root",
+        name: "奥创",
+        source: aochuang,
+        category: "top"
+      },
       {
         key: "3",
         text: "asd\n",
-        parent: "1",
+        parent: "Root",
         name: "恶灵骑士",
-        source: elingqishi,category:'top'
+        source: elingqishi,
+        category: "top"
       },
       {
         key: "4",
         text: "asd\n",
         parent: "3",
         name: "绯红女巫",
-        source: feihongnvwu,category:'top'
+        source: feihongnvwu,
+        category: "top"
       },
-      { key: "5", text: "asd\n", parent: "3", name: "红骷髅", source: hongkulou,category:'top' },
+      {
+        key: "5",
+        text: "asd\n",
+        parent: "3",
+        name: "红骷髅",
+        source: hongkulou,
+        category: "top"
+      },
       {
         key: "6",
         text: "asd\n",
         parent: "2",
         name: "奇异博士",
-        source: qiyiboshi,category:'top'
+        source: qiyiboshi,
+        category: "top"
       },
-      { key: "6", text: "asd\n", parent: "2", name: "钢铁侠", source: gangtiexia,category:'top' },
-      { key: "third", text: "asd\n", name: "第三名", source: gangtiexia,category:'thirdNode' },
-      { key: "fourth", text: "asd\n", parent: "third", name: "第四名", source: gangtiexia,category:'fourthNode' }
+      {
+        key: "6",
+        text: "asd\n",
+        parent: "2",
+        name: "钢铁侠",
+        source: gangtiexia,
+        category: "top"
+      },
+      {
+        key: "third",
+        text: "asd\n",
+        name: "第三名",
+        source: gangtiexia,
+        category: "thirdNode"
+      },
+      {
+        key: "fourth",
+        text: "asd\n",
+        parent: "third",
+        name: "第四名",
+        source: gangtiexia,
+        category: "fourthNode"
+      }
     ];
     myDiagram.model = model;
-    myDiagram.layout = $(
-      go.TreeLayout, // 1个特殊的树形排列 Diagram.layout布局
-      { angle: 270, layerSpacing: 60 }
-    );
+    // myDiagram.layout = $(
+    //   go.TreeLayout, // 1个特殊的树形排列 Diagram.layout布局
+    //   { angle: 270, layerSpacing: 30 }
+    // );
+    this.doubleTreeLayout(myDiagram)
+  },
+  methods: {
+    doubleTreeLayout(diagram) {
+      // Within this function override the definition of '$' from jQuery:
+      var go = this.go;
+      var $ = go.GraphObject.make; // for conciseness in defining templates
+      diagram.startTransaction("Double Tree Layout");
+
+      // split the nodes and links into two Sets, depending on direction
+      var topParts = new go.Set(/*go.Part*/);
+      this.separatePartsByLayout(diagram, topParts);
+      // but the ROOT node will be in both collections
+
+      // create and perform two TreeLayouts, one in each direction,
+      // without moving the ROOT node, on the different subsets of nodes and links
+      var layout = $(go.TreeLayout, {
+        angle: 270,
+        arrangement: go.TreeLayout.ArrangementFixedRoots,
+        // setsPortSpot: false
+      });
+
+      layout.doLayout(topParts);
+
+      diagram.commitTransaction("Double Tree Layout");
+    },
+    separatePartsByLayout(diagram, topParts) {
+      var root = diagram.findNodeForKey("Root");
+      console.log(root)
+      if (root === null) return;
+      // the ROOT node is shared by both subtrees!
+      topParts.add(root);
+      // look at all of the immediate children of the ROOT node
+      root.findTreeChildrenNodes().each(function(child) {
+        // in what direction is this child growing?
+        var dir = child.data.dir;
+        var coll = topParts;
+        // add the whole subtree starting with this child node
+        coll.addAll(child.findTreeParts());
+        // and also add the link from the ROOT node to this child node
+        coll.add(child.findTreeParentLink());
+      });
+    }
   }
 };
 </script>
